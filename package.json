@@ -7,6 +7,7 @@
 		"dev": "node ./node_modules/gulp/bin/gulp.js --ram --fwatch",
 		"build": "node ./node_modules/gulp/bin/gulp.js",
 		"build_min": "node ./node_modules/gulp/bin/gulp.js --min",
+		"build_min github": "node ./node_modules/gulp/bin/gulp.js --min --github",
 		"build_watch": "node ./node_modules/gulp/bin/gulp.js --fwatch",
 		"build_watch_min": "node ./node_modules/gulp/bin/gulp.js --fwatch --min",
 		"imagemin": "node ./node_modules/gulp/bin/gulp.js imageMin",
