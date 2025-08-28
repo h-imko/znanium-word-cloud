@@ -97,7 +97,7 @@ function reload() {
 }
 
 function replaceSrc() {
-	return replace(argv.prod ? "/src/assets/" : "/src/", argv.github ? "/znanium-word-cloud/" : argv.prod ? "/v2/" : "/")
+	return replace(argv.prod ? "/src/assets/" : "/src/", argv.github ? "/znanium-word-cloud/build/" : argv.prod ? "/v2/" : "/")
 }
 
 function clean() {
