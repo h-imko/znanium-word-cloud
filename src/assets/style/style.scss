@@ -28,6 +28,7 @@
   margin: 20px auto 0;
   border: grey dashed 3px;
   font-family: sans-serif;
+  border-radius: 5%;
 }
 
 .test a {
@@ -38,8 +39,6 @@
   transform: translate(calc(var(--cx, 0) * 1px + var(--container-half-width, 0) - 50%), calc(var(--cy, 0) * 1px + var(--container-half-height, 0) - 50%)) scale(calc(var(--opacity, 1)));
   opacity: var(--opacity, 1);
   color: #000;
-  font-weight: bold;
-  text-decoration: none;
   font-size: 10px;
   padding: 0 2px;
 
@@ -68,20 +67,7 @@
   // padding: 10px;
   color: #000;
   --opacity: 1 !important;
-
-  &::before {
-    opacity: 1;
-  }
-}
-
-.test .blue {
-  // color: blue;
-}
-
-.test .red {
-  // color: red;
-}
-
-.test .yellow {
-  // color: green;
+  // &::before {
+  //   opacity: 1;
+  // }
 }
