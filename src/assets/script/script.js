@@ -610,6 +610,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			const cz = item.z * cloudSize * cloudZoom
 
 			a.innerText = item.text
+			a.href = "https://google.com"
 
 			a.style.setProperty("--cx", `${cx}px`)
 			a.style.setProperty("--cy", `${cy}px`)
