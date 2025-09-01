@@ -598,13 +598,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	document.querySelectorAll(".cloud").forEach(cloud => {
 		const wordsContainer = cloud.querySelector(".cloud__words")
+		const cloudSize = cloud.offsetWidth
+		const zoom = 2
 
 		data.forEach(item => {
 			const a = document.createElement("a")
 
-			const cx = item.x * cloud.offsetWidth * 2 + cloud.offsetWidth / 2
-			const cy = item.y * cloud.offsetWidth * 2 + cloud.offsetWidth / 2
-			const cz = item.z * cloud.offsetWidth * 2
+			const cx = item.x * cloudSize * zoom + cloudSize / 2
+			const cy = item.y * cloudSize * zoom + cloudSize / 2
+			const cz = item.z * cloudSize * zoom
 
 			a.innerText = item.text
 
@@ -615,32 +617,57 @@ document.addEventListener("DOMContentLoaded", () => {
 			wordsContainer.append(a)
 		})
 
-		let blocked = false
+		let isBlocked = false
+		let lastY = 0
+		let lastX = 0
+		let rx = 0
+		let ry = 0
 
 		function lock() {
-			blocked = true
+			isBlocked = true
 		}
 
 		function unlock() {
-			blocked = false
+			isBlocked = false
 		}
 
 		/**
 		 * @param {MouseEvent} event 
 		 */
 		function move(event) {
-			if (!blocked) {
+			if (!isBlocked) {
 				lock()
 
 				requestAnimationFrame(() => {
-					cloud.style.setProperty("--ry", (event.clientX - cloud.offsetLeft - cloud.offsetHeight / 2) / cloud.offsetWidth)
-					cloud.style.setProperty("--rx", (event.clientY - cloud.offsetTop - cloud.offsetHeight / 2) / cloud.offsetHeight)
+					// cloud.style.setProperty("--ry", (event.clientX - cloud.offsetLeft - cloud.offsetHeight / 2) / cloudSize)
+					// cloud.style.setProperty("--rx", (event.clientY - cloud.offsetTop - cloud.offsetHeight / 2) / cloud.offsetHeight)
+
+					cloud.style.setProperty("--rx", rx -= ((event.screenY - lastY) / 1000))
+					cloud.style.setProperty("--ry", ry += ((event.screenX - lastX) / 1000))
+
+					lastX = event.screenX
+					lastY = event.screenY
 
 					requestAnimationFrame(unlock)
 				})
 			}
 		}
 
-		cloud.addEventListener("mousemove", move)
+		cloud.addEventListener("mousedown", event => {
+			event.preventDefault()
+
+			lastX = event.screenX
+			lastY = event.screenY
+
+			cloud.addEventListener("mousemove", move)
+		})
+
+		cloud.addEventListener("mouseup", () => {
+			cloud.removeEventListener("mousemove", move)
+		})
+
+		cloud.addEventListener("mouseleave", () => {
+			cloud.removeEventListener("mousemove", move)
+		})
 	})
 })
