@@ -26,6 +26,7 @@
       border: 0.4vw dashed #0f06;
       transform: rotateY(90deg);
       background: radial-gradient(circle, #0f06 0%, #0f06 5%, rgba(0, 0, 0, 0) 5%);
+      pointer-events: none;
     }
 
     &::after {
@@ -36,6 +37,7 @@
       border: 0.4vw dashed #f006;
       transform: rotateX(90deg);
       background: radial-gradient(circle, #f006 0%, #f006 5%, rgba(0, 0, 0, 0) 5%);
+      pointer-events: none;
     }
 
     a {
@@ -50,6 +52,12 @@
       padding: 0 .5cqw;
       border-radius: .2cqw;
       backdrop-filter: blur(1px);
+      color: #000;
+
+      &:hover {
+        box-shadow: .2cqw .2cqw 1cqw 0 rgba(0, 0, 0, 0.2);
+        padding: .5cqw 1cqw;
+      }
     }
   }
 }
