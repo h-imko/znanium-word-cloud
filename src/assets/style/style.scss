@@ -5,31 +5,46 @@
 @use "mixins";
 @use "general";
 
+body {
+  overflow: hidden;
+}
+
 .cloud {
-  width: min(80vh, 80vw);
+  width: min(90vh, 90vw);
   height: auto;
   aspect-ratio: 1;
-  margin: min(10vh, 10vw) auto 0 auto;
-  perspective: min(100vh, 100vw);
+  margin: min(5vh, 5vw) auto;
+  perspective: min(90vh, 90vw);
   container-type: size;
-  border: 0.4vw dashed grey;
 
   &__words {
     transform-style: preserve-3d;
     border-radius: 50%;
-    border: 0.4vw dashed blue;
+    border: 0.4vw dashed #00f6;
     width: 100%;
     height: 100%;
     position: relative;
-    transform: rotateX(calc(var(--rx) * 180deg)) rotateY(calc(var(--ry) * 180deg));
+    transform: translateZ(var(--z, 0)) rotateX(calc(var(--rx, 0) * 180deg)) rotateY(calc(var(--ry, 0) * 180deg));
+    background: radial-gradient(circle, #00f6 0%, #00f6 5%, rgba(0, 0, 0, 0) 5%);
+
+    &::before {
+      content: "";
+      inset: -0.4vw;
+      position: absolute;
+      border-radius: 50%;
+      border: 0.4vw dashed #0f06;
+      transform: rotateY(90deg);
+      background: radial-gradient(circle, #0f06 0%, #0f06 5%, rgba(0, 0, 0, 0) 5%);
+    }
 
     &::after {
       content: "";
       inset: -0.4vw;
       position: absolute;
       border-radius: 50%;
-      border: 0.4vw dashed red;
+      border: 0.4vw dashed #f006;
       transform: rotateX(90deg);
+      background: radial-gradient(circle, #f006 0%, #f006 5%, rgba(0, 0, 0, 0) 5%);
     }
 
     a {
@@ -37,11 +52,12 @@
       left: var(--cx);
       top: var(--cy);
       translate: -50% -50% var(--cz);
-      transform: rotateY(calc(var(--ry) * -180deg)) rotateX(calc(var(--rx) * -180deg));
-      background-color: rgba(255, 255, 255, .9);
-      box-shadow: .15cqw .15cqw .3cqw 0 rgba(34, 60, 80, 0.2);
-      font-size: 2cqw;
+      transform: rotateY(calc(var(--ry, 0) * -180deg)) rotateX(calc(var(--rx, 0) * -180deg)) scale(max(var(--word-scale, 1), 0.2));
+      background-color: #fff;
+      box-shadow: .2cqw .2cqw .5cqw 0 rgba(34, 60, 80, 0.2);
+      font-size: 1.5cqw;
       padding: 0 .5cqw;
+      backdrop-filter: blur(1px);
     }
   }
 }

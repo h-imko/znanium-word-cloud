@@ -599,7 +599,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	document.querySelectorAll(".cloud").forEach(cloud => {
 		const wordsContainer = cloud.querySelector(".cloud__words")
 		const cloudSize = cloud.offsetWidth
-		const zoom = 2
+		const zoom = 2.5
 
 		data.forEach(item => {
 			const a = document.createElement("a")
@@ -622,6 +622,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		let lastX = 0
 		let rx = 0
 		let ry = 0
+		let z = 0
 
 		function lock() {
 			isBlocked = true
@@ -639,9 +640,6 @@ document.addEventListener("DOMContentLoaded", () => {
 				lock()
 
 				requestAnimationFrame(() => {
-					// cloud.style.setProperty("--ry", (event.clientX - cloud.offsetLeft - cloud.offsetHeight / 2) / cloudSize)
-					// cloud.style.setProperty("--rx", (event.clientY - cloud.offsetTop - cloud.offsetHeight / 2) / cloud.offsetHeight)
-
 					wordsContainer.style.setProperty("--rx", rx -= ((event.screenY - lastY) / 1000))
 					wordsContainer.style.setProperty("--ry", ry += ((event.screenX - lastX) / 1000))
 
@@ -652,6 +650,13 @@ document.addEventListener("DOMContentLoaded", () => {
 				})
 			}
 		}
+
+		cloud.addEventListener("wheel", event => {
+			event.preventDefault()
+
+			wordsContainer.style.setProperty("--z", `${z -= Math.round(event.deltaY)}px`)
+			wordsContainer.style.setProperty("--word-scale", 1 - z / cloudSize / 1.25)
+		})
 
 		cloud.addEventListener("mousedown", event => {
 			event.preventDefault()
