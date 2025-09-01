@@ -642,8 +642,8 @@ document.addEventListener("DOMContentLoaded", () => {
 					// cloud.style.setProperty("--ry", (event.clientX - cloud.offsetLeft - cloud.offsetHeight / 2) / cloudSize)
 					// cloud.style.setProperty("--rx", (event.clientY - cloud.offsetTop - cloud.offsetHeight / 2) / cloud.offsetHeight)
 
-					cloud.style.setProperty("--rx", rx -= ((event.screenY - lastY) / 1000))
-					cloud.style.setProperty("--ry", ry += ((event.screenX - lastX) / 1000))
+					wordsContainer.style.setProperty("--rx", rx -= ((event.screenY - lastY) / 1000))
+					wordsContainer.style.setProperty("--ry", ry += ((event.screenX - lastX) / 1000))
 
 					lastX = event.screenX
 					lastY = event.screenY
