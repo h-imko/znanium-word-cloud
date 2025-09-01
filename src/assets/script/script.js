@@ -599,14 +599,15 @@ document.addEventListener("DOMContentLoaded", () => {
 	document.querySelectorAll(".cloud").forEach(cloud => {
 		const wordsContainer = cloud.querySelector(".cloud__words")
 		const cloudSize = cloud.offsetWidth
-		const zoom = 2.5
+		const cloudZoom = 2.5
+		const mouseDragRatio = window.screen.availHeight / 1.5
 
 		data.forEach(item => {
 			const a = document.createElement("a")
 
-			const cx = item.x * cloudSize * zoom + cloudSize / 2
-			const cy = item.y * cloudSize * zoom + cloudSize / 2
-			const cz = item.z * cloudSize * zoom
+			const cx = item.x * cloudSize * cloudZoom + cloudSize / 2
+			const cy = item.y * cloudSize * cloudZoom + cloudSize / 2
+			const cz = item.z * cloudSize * cloudZoom
 
 			a.innerText = item.text
 
@@ -640,8 +641,8 @@ document.addEventListener("DOMContentLoaded", () => {
 				lock()
 
 				requestAnimationFrame(() => {
-					wordsContainer.style.setProperty("--rx", rx -= ((event.screenY - lastY) / 1000))
-					wordsContainer.style.setProperty("--ry", ry += ((event.screenX - lastX) / 1000))
+					wordsContainer.style.setProperty("--rx", rx -= ((event.screenY - lastY) / mouseDragRatio))
+					wordsContainer.style.setProperty("--ry", ry += ((event.screenX - lastX) / mouseDragRatio))
 
 					lastX = event.screenX
 					lastY = event.screenY

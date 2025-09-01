@@ -1,13 +1,4 @@
-@use "breakpoint";
-@use "container";
-@use "color";
-@use "font";
-@use "mixins";
 @use "general";
-
-body {
-  overflow: hidden;
-}
 
 .cloud {
   width: min(90vh, 90vw);
@@ -54,9 +45,10 @@ body {
       translate: -50% -50% var(--cz);
       transform: rotateY(calc(var(--ry, 0) * -180deg)) rotateX(calc(var(--rx, 0) * -180deg)) scale(max(var(--word-scale, 1), 0.2));
       background-color: #fff;
-      box-shadow: .2cqw .2cqw .5cqw 0 rgba(34, 60, 80, 0.2);
+      box-shadow: .2cqw .2cqw .5cqw 0 rgba(0, 0, 0, 0.2);
       font-size: 1.5cqw;
       padding: 0 .5cqw;
+      border-radius: .2cqw;
       backdrop-filter: blur(1px);
     }
   }
