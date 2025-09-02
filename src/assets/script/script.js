@@ -648,7 +648,8 @@ document.addEventListener("DOMContentLoaded", () => {
 					lastX = event.screenX
 					lastY = event.screenY
 
-					requestAnimationFrame(unlock)
+					unlock()
+					// requestAnimationFrame(unlock)
 				})
 			}
 		}
@@ -656,8 +657,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		cloud.addEventListener("wheel", event => {
 			event.preventDefault()
 
-			wordsContainer.style.setProperty("--z", `${z -= Math.round(event.deltaY)}px`)
-			wordsContainer.style.setProperty("--word-scale", 1 - z / cloudSize / 1.25)
+			wordsContainer.style.setProperty("--z", `${z = Math.min(z - Math.round(event.deltaY), cloudSize)}px`)
+			wordsContainer.style.setProperty("--word-scale", 1 - z / cloudSize / 1.5)
 		})
 
 		cloud.addEventListener("mousedown", event => {
