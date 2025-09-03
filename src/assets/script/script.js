@@ -626,32 +626,54 @@ document.addEventListener("DOMContentLoaded", () => {
 		let ry = 0
 		let z = 0
 
-		function lock() {
-			isBlocked = true
-		}
+		/**
+		 * @param {MouseEvent|TouchEvent} event 
+		 */
+		function start(event) {
+			if (!event.touches) {
+				event.preventDefault()
+			}
 
-		function unlock() {
-			isBlocked = false
+			const eventData = event.touches ? event.touches[0] : event
+
+			lastX = eventData.screenX
+			lastY = eventData.screenY
+
+
+			setTimeout(() => {
+				cloud.classList.add("is-moving")
+
+				cloud.addEventListener("touchmove", move)
+				cloud.addEventListener("mousemove", move)
+			})
 		}
 
 		/**
-		 * @param {MouseEvent} event 
+		 * @param {MouseEvent|TouchEvent} event 
 		 */
 		function move(event) {
 			if (!isBlocked) {
-				lock()
+				const eventData = event.touches ? event.touches[0] : event
+
+				isBlocked = true
 
 				requestAnimationFrame(() => {
-					wordsContainer.style.setProperty("--rx", rx -= ((event.screenY - lastY) / mouseDragRatio))
-					wordsContainer.style.setProperty("--ry", ry += ((event.screenX - lastX) / mouseDragRatio))
+					wordsContainer.style.setProperty("--rx", rx -= ((eventData.screenY - lastY) / mouseDragRatio))
+					wordsContainer.style.setProperty("--ry", ry += ((eventData.screenX - lastX) / mouseDragRatio))
 
-					lastX = event.screenX
-					lastY = event.screenY
+					lastX = eventData.screenX
+					lastY = eventData.screenY
 
-					unlock()
-					// requestAnimationFrame(unlock)
+					isBlocked = false
 				})
 			}
+		}
+
+		function end() {
+			cloud.removeEventListener("mousemove", move)
+			cloud.removeEventListener("touchmove", move)
+
+			cloud.classList.remove("is-moving")
 		}
 
 		cloud.addEventListener("wheel", event => {
@@ -661,21 +683,11 @@ document.addEventListener("DOMContentLoaded", () => {
 			wordsContainer.style.setProperty("--word-scale", 1 - z / cloudSize / 1.5)
 		})
 
-		cloud.addEventListener("mousedown", event => {
-			event.preventDefault()
+		cloud.addEventListener("mousedown", start)
+		cloud.addEventListener("touchstart", start)
 
-			lastX = event.screenX
-			lastY = event.screenY
-
-			cloud.addEventListener("mousemove", move)
-		})
-
-		cloud.addEventListener("mouseup", () => {
-			cloud.removeEventListener("mousemove", move)
-		})
-
-		cloud.addEventListener("mouseleave", () => {
-			cloud.removeEventListener("mousemove", move)
-		})
+		cloud.addEventListener("mouseup", end)
+		cloud.addEventListener("mouseleave", end)
+		cloud.addEventListener("touchend", end)
 	})
 })

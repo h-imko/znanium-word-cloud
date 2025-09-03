@@ -12,6 +12,12 @@
     perspective: none;
   }
 
+  &.is-moving {
+    a {
+      pointer-events: none;
+    }
+  }
+
   &__words {
     transform-style: preserve-3d;
     border-radius: 50%;
