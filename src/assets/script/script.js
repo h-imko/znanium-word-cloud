@@ -611,6 +611,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 			a.innerText = item.text
 			a.href = "https://google.com"
+			a.target = "_blank"
 
 			a.style.setProperty("--cx", `${cx}px`)
 			a.style.setProperty("--cy", `${cy}px`)
@@ -619,75 +620,146 @@ document.addEventListener("DOMContentLoaded", () => {
 			wordsContainer.append(a)
 		})
 
-		let isBlocked = false
 		let lastY = 0
 		let lastX = 0
 		let rx = 0
 		let ry = 0
 		let z = 0
+		let lastZoomTouchesDistance = 0
+		let requestedFrame = null
+
+		function clearRequested() {
+			requestedFrame = null
+		}
+
+		/**
+		 * @param {boolean} state
+		 */
+		function toggleMoving(state) {
+			cloud.classList.toggle("is-moving", state)
+		}
+
+		function getDistance(touch1, touch2) {
+			const dx = touch2.pageX - touch1.pageX
+			const dy = touch2.pageY - touch1.pageY
+			return Math.sqrt(dx * dx + dy * dy)
+		}
+
+		function setZoom(requestedZoom) {
+			wordsContainer.style.setProperty("--z", `${z = Math.min(requestedZoom, cloudSize * 2)}px`)
+			wordsContainer.style.setProperty("--word-scale", 1 - z / cloudSize / 2.25)
+		}
+
+		/**
+		 * @param {MouseEvent|TouchEvent|Touch} event
+		 */
+		function updateXY(event) {
+			if (event.touches) {
+				lastX = event.touches[0].screenX
+				lastY = event.touches[0].screenY
+			} else {
+				lastX = event.screenX
+				lastY = event.screenY
+			}
+		}
+
+		/**
+		 * @param {MouseEvent|TouchEvent} event 
+		 */
+		function updateDistance(event) {
+			if (event.touches?.length == 2) {
+				lastZoomTouchesDistance = getDistance(event.touches[0], event.touches[1])
+			}
+		}
+
+		/**
+		 * @param {TouchEvent} event 
+		 */
+		function touch(event) {
+			event.preventDefault()
+			toggleMoving(true)
+
+			if (event.touches.length == 2) {
+				touchZoom(event)
+			} else {
+				move(event.touches[0])
+			}
+		}
+
+		/**
+		 * @param {MouseEvent} eventData 
+		 */
+		function mouse(event) {
+			toggleMoving(true)
+			move(event)
+		}
+
+		/**
+		 * @param {TouchEvent} event 
+		 */
+		function touchZoom(event) {
+			if (!requestedFrame) {
+				const currentZoomTouchesDistance = getDistance(event.touches[0], event.touches[1])
+				const zoomDirection = currentZoomTouchesDistance > lastZoomTouchesDistance ? 1 : -1
+
+				if (Math.abs(currentZoomTouchesDistance - lastZoomTouchesDistance) > 2) {
+					requestedFrame = requestAnimationFrame(() => {
+						setZoom(z + zoomDirection * 10)
+						updateDistance(event)
+						clearRequested()
+					})
+				}
+			}
+		}
+
+		/**
+		 * @param {WheelEvent} event
+		 */
+		function wheelZoom(event) {
+			event.preventDefault()
+
+			setZoom(z - Math.round(event.deltaY))
+		}
+
+		/**
+		 * @param {MouseEvent|Touch} eventData
+		 */
+		function move(eventData) {
+			if (!requestedFrame) {
+				requestedFrame = requestAnimationFrame(() => {
+					wordsContainer.style.setProperty("--rx", rx -= ((eventData.screenY - lastY) / mouseDragRatio))
+					wordsContainer.style.setProperty("--ry", ry += ((eventData.screenX - lastX) / mouseDragRatio))
+
+					updateXY(eventData)
+					clearRequested()
+				})
+			}
+		}
+
+		function finish() {
+			cloud.removeEventListener("mousemove", mouse)
+			cloud.removeEventListener("touchmove", touch)
+
+			toggleMoving(false)
+		}
 
 		/**
 		 * @param {MouseEvent|TouchEvent} event 
 		 */
 		function start(event) {
-			if (!event.touches) {
-				event.preventDefault()
-			}
-
-			const eventData = event.touches ? event.touches[0] : event
-
-			lastX = eventData.screenX
-			lastY = eventData.screenY
-
-
-			setTimeout(() => {
-				cloud.classList.add("is-moving")
-
-				cloud.addEventListener("touchmove", move)
-				cloud.addEventListener("mousemove", move)
-			})
+			updateXY(event)
+			updateDistance(event)
+			cloud.addEventListener("touchmove", touch)
+			cloud.addEventListener("mousemove", mouse)
 		}
 
-		/**
-		 * @param {MouseEvent|TouchEvent} event 
-		 */
-		function move(event) {
-			if (!isBlocked) {
-				const eventData = event.touches ? event.touches[0] : event
-
-				isBlocked = true
-
-				requestAnimationFrame(() => {
-					wordsContainer.style.setProperty("--rx", rx -= ((eventData.screenY - lastY) / mouseDragRatio))
-					wordsContainer.style.setProperty("--ry", ry += ((eventData.screenX - lastX) / mouseDragRatio))
-
-					lastX = eventData.screenX
-					lastY = eventData.screenY
-
-					isBlocked = false
-				})
-			}
-		}
-
-		function end() {
-			cloud.removeEventListener("mousemove", move)
-			cloud.removeEventListener("touchmove", move)
-
-			cloud.classList.remove("is-moving")
-		}
-
-		cloud.addEventListener("wheel", event => {
-			event.preventDefault()
-
-			wordsContainer.style.setProperty("--z", `${z = Math.min(z - Math.round(event.deltaY), cloudSize)}px`)
-			wordsContainer.style.setProperty("--word-scale", 1 - z / cloudSize / 1.5)
-		})
+		cloud.addEventListener("wheel", wheelZoom)
 
 		cloud.addEventListener("mousedown", start)
 		cloud.addEventListener("touchstart", start)
 
-		cloud.addEventListener("mouseup", end)
-		cloud.addEventListener("mouseleave", end)
-		cloud.addEventListener("touchend", end)
+		cloud.addEventListener("mouseup", finish)
+		cloud.addEventListener("mouseleave", finish)
+		cloud.addEventListener("touchend", finish)
 	})
 })

@@ -1,5 +1,9 @@
 @use "general";
 
+.red {
+  color: red;
+}
+
 .cloud {
   width: min(90vh, 90vw);
   height: auto;
@@ -7,9 +11,11 @@
   margin: min(5vh, 5vw) auto;
   container-type: size;
   perspective: min(180vh, 180vw);
+  user-select: none;
+  overscroll-behavior: none;
 
   &--1 {
-    perspective: none;
+    perspective: 0;
   }
 
   &.is-moving {
@@ -62,19 +68,20 @@
       padding: 0 .5cqw;
       border-radius: .2cqw;
       color: #000;
-      transition: opacity ease .2s;
 
       &:hover {
         box-shadow: .2cqw .2cqw 1cqw 0 rgba(0, 0, 0, 0.2);
         padding: .5cqw 1cqw;
-        --word-scale: 1.5;
+        font-size: 2cqw;
       }
     }
 
     &:has(a:hover) {
       a:not(:hover) {
-        opacity: .3;
-        transform: rotateY(calc(var(--ry, 0) * -180deg)) rotateX(calc(var(--rx, 0) * -180deg)) scale(max(var(--word-scale, 1), 0.2)) translateZ(-91cqw);
+        pointer-events: none;
+        opacity: .2;
+        background-color: #0000;
+        // transform: rotateY(calc(var(--ry, 0) * -180deg)) rotateX(calc(var(--rx, 0) * -180deg)) scale(max(var(--word-scale, 1), 0.2)) translateZ(-91cqw);
       }
     }
   }
