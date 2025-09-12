@@ -15,7 +15,7 @@
   overscroll-behavior: none;
 
   &--1 {
-    perspective: 0;
+    perspective: 10000vw;
   }
 
   &.is-moving {
@@ -33,6 +33,7 @@
     position: relative;
     transform: translateZ(var(--z, 0)) rotateX(calc(var(--rx, 0) * 180deg)) rotateY(calc(var(--ry, 0) * 180deg));
     background: radial-gradient(circle, #00f6 0%, #00f6 5%, rgba(0, 0, 0, 0) 5%);
+    pointer-events: none;
 
     &::before {
       content: "";
@@ -42,7 +43,6 @@
       border: 0.4vw dashed #0f06;
       transform: rotateY(90deg);
       background: radial-gradient(circle, #0f06 0%, #0f06 5%, rgba(0, 0, 0, 0) 5%);
-      pointer-events: none;
     }
 
     &::after {
@@ -53,7 +53,6 @@
       border: 0.4vw dashed #f006;
       transform: rotateX(90deg);
       background: radial-gradient(circle, #f006 0%, #f006 5%, rgba(0, 0, 0, 0) 5%);
-      pointer-events: none;
     }
 
     a {
@@ -68,6 +67,7 @@
       padding: 0 .5cqw;
       border-radius: .2cqw;
       color: #000;
+      pointer-events: all;
 
       &:hover {
         box-shadow: .2cqw .2cqw 1cqw 0 rgba(0, 0, 0, 0.2);
@@ -79,10 +79,17 @@
     &:has(a:hover) {
       a:not(:hover) {
         pointer-events: none;
-        opacity: .2;
-        background-color: #0000;
         // transform: rotateY(calc(var(--ry, 0) * -180deg)) rotateX(calc(var(--rx, 0) * -180deg)) scale(max(var(--word-scale, 1), 0.2)) translateZ(-91cqw);
       }
     }
+  }
+
+  &:not(&--1, &--2):has(a:hover) &__words a:not(:hover) {
+    opacity: .2;
+    background-color: #0000;
+  }
+
+  &--1 a:hover {
+    transform: rotateY(calc(var(--ry, 0) * -180deg)) rotateX(calc(var(--rx, 0) * -180deg)) scale(max(var(--word-scale, 1), 0.2)) translateZ(91cqw);
   }
 }

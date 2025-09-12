@@ -4,8 +4,8 @@ export default function index() {
   return (
     <Page>
       <a href="index.html" style="font-size: 48px;">С перспективой</a> <br />
-      <a href="alternative.1.html" style="font-size: 48px;">Без перспективы и без затухания</a>
-      <div className="cloud cloud--1">
+      <a href="alternative.html" style="font-size: 48px;">Без перспективы</a>
+      <div className="cloud cloud--2">
         <div className="cloud__words"> </div>
       </div>
     </Page>
