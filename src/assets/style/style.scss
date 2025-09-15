@@ -68,6 +68,7 @@
       border-radius: .2cqw;
       color: #000;
       pointer-events: all;
+      transition: opacity ease .3s;
 
       &:hover {
         box-shadow: .2cqw .2cqw 1cqw 0 rgba(0, 0, 0, 0.2);
@@ -79,7 +80,6 @@
     &:has(a:hover) {
       a:not(:hover) {
         pointer-events: none;
-        // transform: rotateY(calc(var(--ry, 0) * -180deg)) rotateX(calc(var(--rx, 0) * -180deg)) scale(max(var(--word-scale, 1), 0.2)) translateZ(-91cqw);
       }
     }
   }
