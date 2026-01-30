@@ -58,6 +58,7 @@
     }
 
     a {
+      will-change: transform;
       position: absolute;
       top: var(--cy);
       left: var(--cx);
