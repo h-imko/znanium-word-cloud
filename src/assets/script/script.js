@@ -602,6 +602,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		const cloudZoom = 2.5
 		const mouseDragRatio = window.screen.availHeight / 1.5
 
+		// Создаем DocumentFragment для оптимизации вставки
+		const fragment = document.createDocumentFragment()
+
 		data.forEach(item => {
 			const a = document.createElement("a")
 
@@ -617,149 +620,234 @@ document.addEventListener("DOMContentLoaded", () => {
 			a.style.setProperty("--cy", `${cy}px`)
 			a.style.setProperty("--cz", `${cz}px`)
 
-			wordsContainer.append(a)
+			fragment.appendChild(a)
 		})
 
-		let lastY = 0
-		let lastX = 0
+		wordsContainer.appendChild(fragment)
+
 		let rx = 0
 		let ry = 0
 		let z = 0
+		let lastX = 0
+		let lastY = 0
 		let lastZoomTouchesDistance = 0
-		let requestedFrame = null
 
-		function clearRequested() {
-			requestedFrame = null
+		// Флаги для оптимизации
+		let isDragging = false
+		let isTouchZooming = false
+		let animationFrameId = null
+		let touchMoveFrameId = null
+
+		function setZoom(newZ) {
+			// Ограничиваем зум разумными пределами
+			const minZoom = -cloudSize * 2
+			const maxZoom = cloudSize * 2
+			z = Math.max(minZoom, Math.min(newZ, maxZoom))
+
+			wordsContainer.style.setProperty("--z", `${z}px`)
+			wordsContainer.style.setProperty("--word-scale", 1 - z / cloudSize / 2.25)
 		}
 
-		/**
-		 * @param {boolean} state
-		 */
-		function toggleMoving(state) {
-			cloud.classList.toggle("is-moving", state)
+		function updateRotation(deltaX, deltaY) {
+			rx -= deltaY / mouseDragRatio
+			ry += deltaX / mouseDragRatio
+
+			// Нормализуем углы для лучшей производительности
+			rx = rx % 360
+			ry = ry % 360
+
+			wordsContainer.style.setProperty("--rx", `${rx}`)
+			wordsContainer.style.setProperty("--ry", `${ry}`)
 		}
 
-		function getDistance(touch1, touch2) {
+		function clearAnimationFrames() {
+			if (animationFrameId) {
+				cancelAnimationFrame(animationFrameId)
+				animationFrameId = null
+			}
+			if (touchMoveFrameId) {
+				cancelAnimationFrame(touchMoveFrameId)
+				touchMoveFrameId = null
+			}
+		}
+
+		function getTouchDistance(touch1, touch2) {
 			const dx = touch2.pageX - touch1.pageX
 			const dy = touch2.pageY - touch1.pageY
 			return Math.sqrt(dx * dx + dy * dy)
 		}
 
-		function setZoom(requestedZoom) {
-			wordsContainer.style.setProperty("--z", `${z = Math.min(requestedZoom, cloudSize * 2)}px`)
-			wordsContainer.style.setProperty("--word-scale", 1 - z / cloudSize / 2.25)
-		}
+		// Оптимизированный обработчик движения мышью
+		function handleMouseMove(event) {
+			if (!isDragging) return
 
-		/**
-		 * @param {MouseEvent|TouchEvent|Touch} event
-		 */
-		function updateXY(event) {
-			if (event.touches) {
-				lastX = event.touches[0].screenX
-				lastY = event.touches[0].screenY
-			} else {
-				lastX = event.screenX
-				lastY = event.screenY
-			}
-		}
+			if (!animationFrameId) {
+				animationFrameId = requestAnimationFrame(() => {
+					const deltaX = event.movementX || event.screenX - lastX
+					const deltaY = event.movementY || event.screenY - lastY
 
-		/**
-		 * @param {MouseEvent|TouchEvent} event 
-		 */
-		function updateDistance(event) {
-			if (event.touches?.length == 2) {
-				lastZoomTouchesDistance = getDistance(event.touches[0], event.touches[1])
-			}
-		}
+					updateRotation(deltaX, deltaY)
 
-		/**
-		 * @param {TouchEvent} event 
-		 */
-		function touch(event) {
-			event.preventDefault()
-			toggleMoving(true)
+					lastX = event.screenX
+					lastY = event.screenY
 
-			if (event.touches.length == 2) {
-				touchZoom(event)
-			} else {
-				move(event.touches[0])
-			}
-		}
-
-		/**
-		 * @param {MouseEvent} eventData 
-		 */
-		function mouse(event) {
-			toggleMoving(true)
-			move(event)
-		}
-
-		/**
-		 * @param {TouchEvent} event 
-		 */
-		function touchZoom(event) {
-			if (!requestedFrame) {
-				const currentZoomTouchesDistance = getDistance(event.touches[0], event.touches[1])
-				const zoomDirection = currentZoomTouchesDistance > lastZoomTouchesDistance ? 1 : -1
-
-				if (Math.abs(currentZoomTouchesDistance - lastZoomTouchesDistance) > 2) {
-					requestedFrame = requestAnimationFrame(() => {
-						setZoom(z + zoomDirection * 10)
-						updateDistance(event)
-						clearRequested()
-					})
-				}
-			}
-		}
-
-		/**
-		 * @param {WheelEvent} event
-		 */
-		function wheelZoom(event) {
-			event.preventDefault()
-
-			setZoom(z - Math.round(event.deltaY))
-		}
-
-		/**
-		 * @param {MouseEvent|Touch} eventData
-		 */
-		function move(eventData) {
-			if (!requestedFrame) {
-				requestedFrame = requestAnimationFrame(() => {
-					wordsContainer.style.setProperty("--rx", rx -= ((eventData.screenY - lastY) / mouseDragRatio))
-					wordsContainer.style.setProperty("--ry", ry += ((eventData.screenX - lastX) / mouseDragRatio))
-
-					updateXY(eventData)
-					clearRequested()
+					animationFrameId = null
 				})
 			}
 		}
 
-		function finish() {
-			cloud.removeEventListener("mousemove", mouse)
-			cloud.removeEventListener("touchmove", touch)
+		// Оптимизированный обработчик движения пальцем
+		function handleTouchMove(event) {
+			if (!touchMoveFrameId) {
+				touchMoveFrameId = requestAnimationFrame(() => {
+					if (event.touches.length === 2) {
+						handleTouchZoom(event)
+					} else if (event.touches.length === 1 && isDragging) {
+						handleSingleTouchMove(event)
+					}
+					touchMoveFrameId = null
+				})
+			}
 
-			toggleMoving(false)
+			// Предотвращаем прокрутку страницы только если это возможно
+			if (event.cancelable && (isDragging || isTouchZooming)) {
+				event.preventDefault()
+			}
 		}
 
-		/**
-		 * @param {MouseEvent|TouchEvent} event 
-		 */
-		function start(event) {
-			updateXY(event)
-			updateDistance(event)
-			cloud.addEventListener("touchmove", touch)
-			cloud.addEventListener("mousemove", mouse)
+		function handleSingleTouchMove(event) {
+			const touch = event.touches[0]
+			const deltaX = touch.screenX - lastX
+			const deltaY = touch.screenY - lastY
+
+			updateRotation(deltaX, deltaY)
+
+			lastX = touch.screenX
+			lastY = touch.screenY
 		}
 
-		cloud.addEventListener("wheel", wheelZoom)
+		function handleTouchZoom(event) {
+			isTouchZooming = true
+			const touch1 = event.touches[0]
+			const touch2 = event.touches[1]
+			const currentDistance = getTouchDistance(touch1, touch2)
 
-		cloud.addEventListener("mousedown", start)
-		cloud.addEventListener("touchstart", start)
+			if (lastZoomTouchesDistance > 0) {
+				const zoomDelta = currentDistance - lastZoomTouchesDistance
+				if (Math.abs(zoomDelta) > 2) {
+					const zoomDirection = zoomDelta > 0 ? 1 : -1
+					setZoom(z + zoomDirection * 12)
+				}
+			}
 
-		cloud.addEventListener("mouseup", finish)
-		cloud.addEventListener("mouseleave", finish)
-		cloud.addEventListener("touchend", finish)
+			lastZoomTouchesDistance = currentDistance
+		}
+
+		function handleWheel(event) {
+			event.preventDefault()
+			setZoom(z - event.deltaY * 0.5)
+		}
+
+		function startDrag(event) {
+			clearAnimationFrames()
+			isDragging = true
+			isTouchZooming = false
+			cloud.classList.add("is-moving")
+
+			if (event.type === 'touchstart') {
+				if (event.touches.length === 1) {
+					lastX = event.touches[0].screenX
+					lastY = event.touches[0].screenY
+					lastZoomTouchesDistance = 0
+				} else if (event.touches.length === 2) {
+					// Для зума двумя пальцами
+					lastZoomTouchesDistance = getTouchDistance(
+						event.touches[0],
+						event.touches[1]
+					)
+					isTouchZooming = true
+				}
+
+				if (event.cancelable) {
+					event.preventDefault()
+				}
+			} else if (event.type === 'mousedown' && event.button === 0) {
+				lastX = event.screenX
+				lastY = event.screenY
+			}
+
+			// Добавляем обработчики движения
+			cloud.addEventListener("mousemove", handleMouseMove)
+			cloud.addEventListener("touchmove", handleTouchMove, { passive: false })
+		}
+
+		function endDrag() {
+			isDragging = false
+			isTouchZooming = false
+			cloud.classList.remove("is-moving")
+			lastZoomTouchesDistance = 0
+
+			// Удаляем обработчики движения
+			cloud.removeEventListener("mousemove", handleMouseMove)
+			cloud.removeEventListener("touchmove", handleTouchMove)
+
+			clearAnimationFrames()
+		}
+
+		// Начальные значения
+		setZoom(0)
+		updateRotation(0, 0)
+
+		// Назначаем обработчики событий
+		cloud.addEventListener("wheel", handleWheel, { passive: false })
+
+		// События начала перетаскивания
+		cloud.addEventListener("mousedown", startDrag)
+		cloud.addEventListener("touchstart", startDrag, { passive: false })
+
+		// События окончания перетаскивания
+		cloud.addEventListener("mouseup", endDrag)
+		cloud.addEventListener("mouseleave", endDrag)
+		cloud.addEventListener("touchend", endDrag)
+		cloud.addEventListener("touchcancel", endDrag)
+
+		// Обработчик изменения размера окна
+		let resizeTimeout
+		function handleResize() {
+			clearTimeout(resizeTimeout)
+			resizeTimeout = setTimeout(() => {
+				// Пересчитываем позиции слов при изменении размера
+				const newCloudSize = cloud.offsetWidth
+				if (newCloudSize !== cloudSize) {
+					const scaleFactor = newCloudSize / cloudSize
+					wordsContainer.querySelectorAll("a").forEach((a, index) => {
+						const item = data[index]
+						const cx = item.x * newCloudSize * cloudZoom + newCloudSize / 2
+						const cy = item.y * newCloudSize * cloudZoom + newCloudSize / 2
+						const cz = item.z * newCloudSize * cloudZoom
+
+						a.style.setProperty("--cx", `${cx}px`)
+						a.style.setProperty("--cy", `${cy}px`)
+						a.style.setProperty("--cz", `${cz}px`)
+					})
+				}
+			}, 100)
+		}
+
+		window.addEventListener("resize", handleResize)
+
+		// Очистка при размонтировании (если нужно)
+		cloud.cleanupCloud = function () {
+			endDrag()
+			cloud.removeEventListener("wheel", handleWheel)
+			cloud.removeEventListener("mousedown", startDrag)
+			cloud.removeEventListener("touchstart", startDrag)
+			cloud.removeEventListener("mouseup", endDrag)
+			cloud.removeEventListener("mouseleave", endDrag)
+			cloud.removeEventListener("touchend", endDrag)
+			cloud.removeEventListener("touchcancel", endDrag)
+			window.removeEventListener("resize", handleResize)
+			clearAnimationFrames()
+		}
 	})
 })
