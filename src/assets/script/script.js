@@ -607,6 +607,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		wordsContainer.style.setProperty("--cloud-size", cloudSize)
 
 		const fragment = document.createDocumentFragment()
+
 		data.forEach(item => {
 			const a = document.createElement("a")
 
@@ -618,7 +619,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			a.href = "https://google.com"
 			a.target = "_blank"
 
-			a.style.setProperty("translate", `calc(${cx}px - 50%) calc(${cy}px - 50%) ${cz}px`)
+			a.style.setProperty("translate", `-50% -50% ${cz}px`)
+			a.style.setProperty("top", `${cx}px`)
+			a.style.setProperty("left", `${cy}px`)
 
 			fragment.appendChild(a)
 		})
@@ -634,8 +637,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 		let isDragging = false
 		let isTouchZooming = false
-		let animationFrameId = null
-		let touchMoveFrameId = null
+		let REFid = null
 
 		function setZoom(newZ) {
 			z = Math.max(minZoom, Math.min(newZ, maxZoom))
@@ -653,13 +655,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 
 		function clearAnimationFrames() {
-			if (animationFrameId) {
-				cancelAnimationFrame(animationFrameId)
-				animationFrameId = null
-			}
-			if (touchMoveFrameId) {
-				cancelAnimationFrame(touchMoveFrameId)
-				touchMoveFrameId = null
+			if (REFid) {
+				cancelAnimationFrame(REFid)
+				REFid = null
 			}
 		}
 
@@ -671,10 +669,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 		// Оптимизированный обработчик движения мышью
 		function handleMouseMove(event) {
-			if (!isDragging) return
-
-			if (!animationFrameId) {
-				animationFrameId = requestAnimationFrame(() => {
+			if (isDragging && !REFid) {
+				REFid = requestAnimationFrame(() => {
 					const deltaX = event.movementX || event.screenX - lastX
 					const deltaY = event.movementY || event.screenY - lastY
 
@@ -683,21 +679,21 @@ document.addEventListener("DOMContentLoaded", () => {
 					lastX = event.screenX
 					lastY = event.screenY
 
-					animationFrameId = null
+					REFid = null
 				})
 			}
 		}
 
 		// Оптимизированный обработчик движения пальцем
 		function handleTouchMove(event) {
-			if (!touchMoveFrameId) {
-				touchMoveFrameId = requestAnimationFrame(() => {
+			if (!REFid) {
+				REFid = requestAnimationFrame(() => {
 					if (event.touches.length === 2) {
 						handleTouchZoom(event)
 					} else if (event.touches.length === 1 && isDragging) {
 						handleSingleTouchMove(event)
 					}
-					touchMoveFrameId = null
+					REFid = null
 				})
 			}
 
