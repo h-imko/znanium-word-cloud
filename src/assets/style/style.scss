@@ -58,10 +58,8 @@
     }
 
     a {
+      will-change: transform;
       position: absolute;
-      top: var(--cy);
-      left: var(--cx);
-      translate: -50% -50% var(--cz);
       transform: rotateY(calc(var(--ry) * -1)) rotateX(calc(var(--rx) * -1)) scale(max(1 - var(--z) / var(--cloud-size) / 2.25, 0.2));
       background-color: #fff;
       box-shadow: .2cqw .2cqw .5cqw 0 rgba(0, 0, 0, 0.2);

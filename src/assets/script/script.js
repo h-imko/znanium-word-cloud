@@ -619,11 +619,12 @@ document.addEventListener("DOMContentLoaded", () => {
 			a.href = "https://google.com"
 			a.target = "_blank"
 
-			a.style.setProperty("--cz", `${cz}px`)
-			a.style.setProperty("--cx", `${cx}px`)
-			a.style.setProperty("--cy", `${cy}px`)
 
-			fragment.appendChild(a)
+			wordsContainer.appendChild(a)
+
+			a.style.setProperty("translate", `0 0 ${cz}px`)
+			a.style.setProperty("left", `${cx - a.clientWidth / 2}px`)
+			a.style.setProperty("top", `${cy - a.clientHeight / 2}px`)
 		})
 
 		wordsContainer.appendChild(fragment)
