@@ -32,8 +32,8 @@
     width: 100%;
     height: 100%;
     position: relative;
-    translate: 0 0 var(--z, 0);
-    transform: rotateX(calc(var(--rx, 0) * 180deg)) rotateY(calc(var(--ry, 0) * 180deg));
+    translate: 0 0 calc(var(--z) * 1px);
+    transform: rotateX(var(--rx)) rotateY(var(--ry));
     background: radial-gradient(circle, #00f6 0%, #00f6 5%, rgba(0, 0, 0, 0) 5%);
     pointer-events: none;
 
@@ -59,8 +59,7 @@
 
     a {
       position: absolute;
-      translate: calc(var(--cx, 0) - 50%) calc(var(--cy, 0) - 50%) var(--cz);
-      transform: rotateY(calc(var(--ry, 0) * -180deg)) rotateX(calc(var(--rx, 0) * -180deg)) scale(max(var(--word-scale, 1), 0.2));
+      transform: rotateY(calc(var(--ry) * -1)) rotateX(calc(var(--rx) * -1)) scale(max(1 - var(--z) / var(--cloud-size) / 2.25, 0.2));
       background-color: #fff;
       box-shadow: .2cqw .2cqw .5cqw 0 rgba(0, 0, 0, 0.2);
       font-size: 1.5cqw;

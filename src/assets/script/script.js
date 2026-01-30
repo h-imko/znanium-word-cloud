@@ -599,26 +599,26 @@ document.addEventListener("DOMContentLoaded", () => {
 	document.querySelectorAll(".cloud").forEach(cloud => {
 		const wordsContainer = cloud.querySelector(".cloud__words")
 		const cloudSize = cloud.offsetWidth
-		const cloudZoom = 2.5
-		const mouseDragRatio = window.screen.availHeight / 1.5
+		const cloudZoomRatio = 2.5
+		const mouseDragRatio = cloudSize / 1.5 * 2
+		const minZoom = -cloudSize * 2
+		const maxZoom = cloudSize * 2
 
-		// Создаем DocumentFragment для оптимизации вставки
+		wordsContainer.style.setProperty("--cloud-size", cloudSize)
+
 		const fragment = document.createDocumentFragment()
-
 		data.forEach(item => {
 			const a = document.createElement("a")
 
-			const cx = item.x * cloudSize * cloudZoom + cloudSize / 2
-			const cy = item.y * cloudSize * cloudZoom + cloudSize / 2
-			const cz = item.z * cloudSize * cloudZoom
+			const cx = item.x * cloudSize * cloudZoomRatio + cloudSize / 2
+			const cy = item.y * cloudSize * cloudZoomRatio + cloudSize / 2
+			const cz = item.z * cloudSize * cloudZoomRatio
 
 			a.innerText = item.text
 			a.href = "https://google.com"
 			a.target = "_blank"
 
-			a.style.setProperty("--cx", `${cx}px`)
-			a.style.setProperty("--cy", `${cy}px`)
-			a.style.setProperty("--cz", `${cz}px`)
+			a.style.setProperty("translate", `calc(${cx}px - 50%) calc(${cy}px - 50%) ${cz}px`)
 
 			fragment.appendChild(a)
 		})
@@ -632,32 +632,24 @@ document.addEventListener("DOMContentLoaded", () => {
 		let lastY = 0
 		let lastZoomTouchesDistance = 0
 
-		// Флаги для оптимизации
 		let isDragging = false
 		let isTouchZooming = false
 		let animationFrameId = null
 		let touchMoveFrameId = null
 
 		function setZoom(newZ) {
-			// Ограничиваем зум разумными пределами
-			const minZoom = -cloudSize * 2
-			const maxZoom = cloudSize * 2
 			z = Math.max(minZoom, Math.min(newZ, maxZoom))
 
-			wordsContainer.style.setProperty("--z", `${z}px`)
+			wordsContainer.style.setProperty("--z", `${z}`)
 			wordsContainer.style.setProperty("--word-scale", 1 - z / cloudSize / 2.25)
 		}
 
 		function updateRotation(deltaX, deltaY) {
-			rx -= deltaY / mouseDragRatio
-			ry += deltaX / mouseDragRatio
+			rx -= deltaY / mouseDragRatio % 360
+			ry += deltaX / mouseDragRatio % 360
 
-			// Нормализуем углы для лучшей производительности
-			rx = rx % 360
-			ry = ry % 360
-
-			wordsContainer.style.setProperty("--rx", `${rx}`)
-			wordsContainer.style.setProperty("--ry", `${ry}`)
+			wordsContainer.style.setProperty("--rx", `${rx}turn`)
+			wordsContainer.style.setProperty("--ry", `${ry}turn`)
 		}
 
 		function clearAnimationFrames() {
@@ -794,11 +786,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			clearAnimationFrames()
 		}
 
-		// Начальные значения
 		setZoom(0)
 		updateRotation(0, 0)
 
-		// Назначаем обработчики событий
 		cloud.addEventListener("wheel", handleWheel, { passive: false })
 
 		// События начала перетаскивания
@@ -810,44 +800,5 @@ document.addEventListener("DOMContentLoaded", () => {
 		cloud.addEventListener("mouseleave", endDrag)
 		cloud.addEventListener("touchend", endDrag)
 		cloud.addEventListener("touchcancel", endDrag)
-
-		// Обработчик изменения размера окна
-		let resizeTimeout
-		function handleResize() {
-			clearTimeout(resizeTimeout)
-			resizeTimeout = setTimeout(() => {
-				// Пересчитываем позиции слов при изменении размера
-				const newCloudSize = cloud.offsetWidth
-				if (newCloudSize !== cloudSize) {
-					const scaleFactor = newCloudSize / cloudSize
-					wordsContainer.querySelectorAll("a").forEach((a, index) => {
-						const item = data[index]
-						const cx = item.x * newCloudSize * cloudZoom + newCloudSize / 2
-						const cy = item.y * newCloudSize * cloudZoom + newCloudSize / 2
-						const cz = item.z * newCloudSize * cloudZoom
-
-						a.style.setProperty("--cx", `${cx}px`)
-						a.style.setProperty("--cy", `${cy}px`)
-						a.style.setProperty("--cz", `${cz}px`)
-					})
-				}
-			}, 100)
-		}
-
-		window.addEventListener("resize", handleResize)
-
-		// Очистка при размонтировании (если нужно)
-		cloud.cleanupCloud = function () {
-			endDrag()
-			cloud.removeEventListener("wheel", handleWheel)
-			cloud.removeEventListener("mousedown", startDrag)
-			cloud.removeEventListener("touchstart", startDrag)
-			cloud.removeEventListener("mouseup", endDrag)
-			cloud.removeEventListener("mouseleave", endDrag)
-			cloud.removeEventListener("touchend", endDrag)
-			cloud.removeEventListener("touchcancel", endDrag)
-			window.removeEventListener("resize", handleResize)
-			clearAnimationFrames()
-		}
 	})
 })
