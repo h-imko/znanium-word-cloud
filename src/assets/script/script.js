@@ -619,9 +619,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			a.href = "https://google.com"
 			a.target = "_blank"
 
-			a.style.setProperty("translate", `-50% -50% ${cz}px`)
-			a.style.setProperty("top", `${cx}px`)
-			a.style.setProperty("left", `${cy}px`)
+			a.style.setProperty("--cz", `${cz}px`)
+			a.style.setProperty("--cx", `${cx}px`)
+			a.style.setProperty("--cy", `${cy}px`)
 
 			fragment.appendChild(a)
 		})
@@ -667,7 +667,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			return Math.sqrt(dx * dx + dy * dy)
 		}
 
-		// Оптимизированный обработчик движения мышью
 		function handleMouseMove(event) {
 			if (isDragging && !REFid) {
 				REFid = requestAnimationFrame(() => {
@@ -684,7 +683,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			}
 		}
 
-		// Оптимизированный обработчик движения пальцем
 		function handleTouchMove(event) {
 			if (!REFid) {
 				REFid = requestAnimationFrame(() => {
@@ -697,7 +695,6 @@ document.addEventListener("DOMContentLoaded", () => {
 				})
 			}
 
-			// Предотвращаем прокрутку страницы только если это возможно
 			if (event.cancelable && (isDragging || isTouchZooming)) {
 				event.preventDefault()
 			}
@@ -742,24 +739,20 @@ document.addEventListener("DOMContentLoaded", () => {
 			isTouchZooming = false
 			cloud.classList.add("is-moving")
 
-			if (event.type === 'touchstart') {
+			if (event.type === "touchstart") {
 				if (event.touches.length === 1) {
 					lastX = event.touches[0].screenX
 					lastY = event.touches[0].screenY
 					lastZoomTouchesDistance = 0
 				} else if (event.touches.length === 2) {
-					// Для зума двумя пальцами
-					lastZoomTouchesDistance = getTouchDistance(
-						event.touches[0],
-						event.touches[1]
-					)
+					lastZoomTouchesDistance = getTouchDistance(event.touches[0], event.touches[1])
 					isTouchZooming = true
 				}
 
 				if (event.cancelable) {
 					event.preventDefault()
 				}
-			} else if (event.type === 'mousedown' && event.button === 0) {
+			} else if (event.type === "mousedown" && event.button === 0) {
 				lastX = event.screenX
 				lastY = event.screenY
 			}
@@ -786,12 +779,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		updateRotation(0, 0)
 
 		cloud.addEventListener("wheel", handleWheel, { passive: false })
-
-		// События начала перетаскивания
 		cloud.addEventListener("mousedown", startDrag)
 		cloud.addEventListener("touchstart", startDrag, { passive: false })
-
-		// События окончания перетаскивания
 		cloud.addEventListener("mouseup", endDrag)
 		cloud.addEventListener("mouseleave", endDrag)
 		cloud.addEventListener("touchend", endDrag)
