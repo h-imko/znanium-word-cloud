@@ -232,3 +232,4 @@ export default gulp.series(
 )
 
 export { cleanInitials, imageMin, convertFont as ttfToWoff }
+
