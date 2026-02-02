@@ -1,4 +1,234 @@
-document.addEventListener("DOMContentLoaded", () => {
+class WordCloud3D {
+	constructor(cloudElement, data) {
+		this.cloud = cloudElement
+		this.data = data
+		this.wordsContainer = cloudElement.querySelector('.cloud__words')
+
+		this.cloudSize = cloudElement.offsetWidth
+		this.cloudZoomRatio = 2.5
+		this.mouseDragRatio = this.cloudSize / 1.5 * 2
+		this.minZoom = -this.cloudSize * 2
+		this.maxZoom = this.cloudSize * 2
+
+		this.rx = 0
+		this.ry = 0
+		this.z = 0
+
+		this.lastX = 0
+		this.lastY = 0
+		this.lastZoomTouchesDistance = 0
+
+		this.isDragging = false
+		this.isTouchZooming = false
+		this.animationFrameId = null
+
+		this.init()
+	}
+
+	init() {
+		this.wordsContainer.style.setProperty('--cloud-size', `${this.cloudSize}px`)
+
+		this.createWords()
+		this.setZoom(0)
+		this.updateRotation(0, 0)
+		this.addEventListeners()
+	}
+
+	createWords() {
+		const fragment = document.createDocumentFragment()
+
+		this.data.forEach(item => {
+			const link = document.createElement('a')
+			link.innerText = item.text
+			link.href = 'https://google.com'
+			link.target = '_blank'
+
+			const cx = item.x * this.cloudSize * this.cloudZoomRatio + this.cloudSize / 2
+			const cy = item.y * this.cloudSize * this.cloudZoomRatio + this.cloudSize / 2
+			const cz = item.z * this.cloudSize * this.cloudZoomRatio
+
+			link.style.setProperty('--cz', `${cz}px`)
+			link.style.setProperty('--cx', `${cx}px`)
+			link.style.setProperty('--cy', `${cy}px`)
+
+			fragment.appendChild(link)
+
+			setTimeout(() => {
+			}, 0)
+		})
+
+		this.wordsContainer.appendChild(fragment)
+	}
+
+	setZoom(newZ) {
+		this.z = Math.max(this.minZoom, Math.min(newZ, this.maxZoom))
+
+		this.wordsContainer.style.setProperty('--z', `${this.z}px`)
+		this.wordsContainer.style.setProperty('--word-scale', 1 - this.z / this.cloudSize / 2.25)
+	}
+
+	updateRotation(deltaX, deltaY) {
+		this.rx -= deltaY / this.mouseDragRatio % 360
+		this.ry += deltaX / this.mouseDragRatio % 360
+
+		this.wordsContainer.style.setProperty('--rx', `${this.rx}turn`)
+		this.wordsContainer.style.setProperty('--ry', `${this.ry}turn`)
+	}
+
+	clearAnimationFrame() {
+		if (this.animationFrameId) {
+			cancelAnimationFrame(this.animationFrameId)
+			this.animationFrameId = null
+		}
+	}
+
+	getTouchDistance(touch1, touch2) {
+		const dx = touch2.pageX - touch1.pageX
+		const dy = touch2.pageY - touch1.pageY
+		return Math.sqrt(dx * dx + dy * dy)
+	}
+
+	handleMouseMove = (event) => {
+		if (this.isDragging && !this.animationFrameId) {
+			this.animationFrameId = requestAnimationFrame(() => {
+				const deltaX = event.movementX || event.screenX - this.lastX
+				const deltaY = event.movementY || event.screenY - this.lastY
+
+				this.updateRotation(deltaX, deltaY)
+
+				this.lastX = event.screenX
+				this.lastY = event.screenY
+
+				this.animationFrameId = null
+			})
+		}
+	}
+
+	handleTouchMove = (event) => {
+		if (!this.animationFrameId) {
+			this.animationFrameId = requestAnimationFrame(() => {
+				if (event.touches.length === 2) {
+					this.handleTouchZoom(event)
+				} else if (event.touches.length === 1 && this.isDragging) {
+					this.handleSingleTouchMove(event)
+				}
+				this.animationFrameId = null
+			})
+		}
+
+		if (event.cancelable && (this.isDragging || this.isTouchZooming)) {
+			event.preventDefault()
+		}
+	}
+
+	handleSingleTouchMove = (event) => {
+		const touch = event.touches[0]
+		const deltaX = touch.screenX - this.lastX
+		const deltaY = touch.screenY - this.lastY
+
+		this.updateRotation(deltaX, deltaY)
+
+		this.lastX = touch.screenX
+		this.lastY = touch.screenY
+	}
+
+	handleTouchZoom = (event) => {
+		this.isTouchZooming = true
+		const touch1 = event.touches[0]
+		const touch2 = event.touches[1]
+		const currentDistance = this.getTouchDistance(touch1, touch2)
+
+		if (this.lastZoomTouchesDistance > 0) {
+			const zoomDelta = currentDistance - this.lastZoomTouchesDistance
+			if (Math.abs(zoomDelta) > 2) {
+				const zoomDirection = zoomDelta > 0 ? 1 : -1
+				this.setZoom(this.z + zoomDirection * 12)
+			}
+		}
+
+		this.lastZoomTouchesDistance = currentDistance
+	}
+
+	handleWheel = (event) => {
+		event.preventDefault()
+		this.setZoom(this.z - event.deltaY * 0.5)
+	}
+
+	startDrag = (event) => {
+		this.clearAnimationFrame()
+		this.isDragging = true
+		this.isTouchZooming = false
+		this.cloud.classList.add('is-moving')
+
+		if (event.type === 'touchstart') {
+			if (event.touches.length === 1) {
+				this.lastX = event.touches[0].screenX
+				this.lastY = event.touches[0].screenY
+				this.lastZoomTouchesDistance = 0
+			} else if (event.touches.length === 2) {
+				this.lastZoomTouchesDistance = this.getTouchDistance(event.touches[0], event.touches[1])
+				this.isTouchZooming = true
+			}
+
+			if (event.cancelable) {
+				event.preventDefault()
+			}
+		} else if (event.type === 'mousedown' && event.button === 0) {
+			this.lastX = event.screenX
+			this.lastY = event.screenY
+		}
+
+		// Добавляем обработчики движения
+		this.cloud.addEventListener('mousemove', this.handleMouseMove)
+		this.cloud.addEventListener('touchmove', this.handleTouchMove, { passive: false })
+	}
+
+	endDrag = () => {
+		this.isDragging = false
+		this.isTouchZooming = false
+		this.cloud.classList.remove('is-moving')
+		this.lastZoomTouchesDistance = 0
+
+		this.cloud.removeEventListener('mousemove', this.handleMouseMove)
+		this.cloud.removeEventListener('touchmove', this.handleTouchMove)
+
+		this.clearAnimationFrame()
+	}
+
+	addEventListeners() {
+		this.cloud.addEventListener('wheel', this.handleWheel, { passive: false })
+		this.cloud.addEventListener('mousedown', this.startDrag)
+		this.cloud.addEventListener('touchstart', this.startDrag, { passive: false })
+		this.cloud.addEventListener('mouseup', this.endDrag)
+		this.cloud.addEventListener('mouseleave', this.endDrag)
+		this.cloud.addEventListener('touchend', this.endDrag)
+		this.cloud.addEventListener('touchcancel', this.endDrag)
+	}
+
+	removeEventListeners() {
+		this.cloud.removeEventListener('wheel', this.handleWheel)
+		this.cloud.removeEventListener('mousedown', this.startDrag)
+		this.cloud.removeEventListener('touchstart', this.startDrag)
+		this.cloud.removeEventListener('mouseup', this.endDrag)
+		this.cloud.removeEventListener('mouseleave', this.endDrag)
+		this.cloud.removeEventListener('touchend', this.endDrag)
+		this.cloud.removeEventListener('touchcancel', this.endDrag)
+
+		this.cloud.removeEventListener('mousemove', this.handleMouseMove)
+		this.cloud.removeEventListener('touchmove', this.handleTouchMove)
+
+		this.clearAnimationFrame()
+	}
+
+	destroy() {
+		this.removeEventListeners()
+		this.wordsContainer.innerHTML = ''
+	}
+}
+
+// Использование класса
+document.addEventListener('DOMContentLoaded', () => {
+	// Ваши данные
 	const data = [
 		{
 			"x": 0.018387533724308014,
@@ -596,195 +826,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	]
 
-	document.querySelectorAll(".cloud").forEach(cloud => {
-		const wordsContainer = cloud.querySelector(".cloud__words")
-		const cloudSize = cloud.offsetWidth
-		const cloudZoomRatio = 2.5
-		const mouseDragRatio = cloudSize / 1.5 * 2
-		const minZoom = -cloudSize * 2
-		const maxZoom = cloudSize * 2
-
-		wordsContainer.style.setProperty("--cloud-size", cloudSize)
-
-		const fragment = document.createDocumentFragment()
-
-		data.forEach(item => {
-			const a = document.createElement("a")
-
-			const cx = item.x * cloudSize * cloudZoomRatio + cloudSize / 2
-			const cy = item.y * cloudSize * cloudZoomRatio + cloudSize / 2
-			const cz = item.z * cloudSize * cloudZoomRatio
-
-			a.innerText = item.text
-			a.href = "https://google.com"
-			a.target = "_blank"
-
-
-			wordsContainer.appendChild(a)
-
-			a.style.setProperty("translate", `0 0 ${cz}px`)
-			a.style.setProperty("left", `${cx - a.clientWidth / 2}px`)
-			a.style.setProperty("top", `${cy - a.clientHeight / 2}px`)
-		})
-
-		wordsContainer.appendChild(fragment)
-
-		let rx = 0
-		let ry = 0
-		let z = 0
-		let lastX = 0
-		let lastY = 0
-		let lastZoomTouchesDistance = 0
-
-		let isDragging = false
-		let isTouchZooming = false
-		let REFid = null
-
-		function setZoom(newZ) {
-			z = Math.max(minZoom, Math.min(newZ, maxZoom))
-
-			wordsContainer.style.setProperty("--z", `${z}`)
-			wordsContainer.style.setProperty("--word-scale", 1 - z / cloudSize / 2.25)
-		}
-
-		function updateRotation(deltaX, deltaY) {
-			rx -= deltaY / mouseDragRatio % 360
-			ry += deltaX / mouseDragRatio % 360
-
-			wordsContainer.style.setProperty("--rx", `${rx}turn`)
-			wordsContainer.style.setProperty("--ry", `${ry}turn`)
-		}
-
-		function clearAnimationFrames() {
-			if (REFid) {
-				cancelAnimationFrame(REFid)
-				REFid = null
-			}
-		}
-
-		function getTouchDistance(touch1, touch2) {
-			const dx = touch2.pageX - touch1.pageX
-			const dy = touch2.pageY - touch1.pageY
-			return Math.sqrt(dx * dx + dy * dy)
-		}
-
-		function handleMouseMove(event) {
-			if (isDragging && !REFid) {
-				REFid = requestAnimationFrame(() => {
-					const deltaX = event.movementX || event.screenX - lastX
-					const deltaY = event.movementY || event.screenY - lastY
-
-					updateRotation(deltaX, deltaY)
-
-					lastX = event.screenX
-					lastY = event.screenY
-
-					REFid = null
-				})
-			}
-		}
-
-		function handleTouchMove(event) {
-			if (!REFid) {
-				REFid = requestAnimationFrame(() => {
-					if (event.touches.length === 2) {
-						handleTouchZoom(event)
-					} else if (event.touches.length === 1 && isDragging) {
-						handleSingleTouchMove(event)
-					}
-					REFid = null
-				})
-			}
-
-			if (event.cancelable && (isDragging || isTouchZooming)) {
-				event.preventDefault()
-			}
-		}
-
-		function handleSingleTouchMove(event) {
-			const touch = event.touches[0]
-			const deltaX = touch.screenX - lastX
-			const deltaY = touch.screenY - lastY
-
-			updateRotation(deltaX, deltaY)
-
-			lastX = touch.screenX
-			lastY = touch.screenY
-		}
-
-		function handleTouchZoom(event) {
-			isTouchZooming = true
-			const touch1 = event.touches[0]
-			const touch2 = event.touches[1]
-			const currentDistance = getTouchDistance(touch1, touch2)
-
-			if (lastZoomTouchesDistance > 0) {
-				const zoomDelta = currentDistance - lastZoomTouchesDistance
-				if (Math.abs(zoomDelta) > 2) {
-					const zoomDirection = zoomDelta > 0 ? 1 : -1
-					setZoom(z + zoomDirection * 12)
-				}
-			}
-
-			lastZoomTouchesDistance = currentDistance
-		}
-
-		function handleWheel(event) {
-			event.preventDefault()
-			setZoom(z - event.deltaY * 0.5)
-		}
-
-		function startDrag(event) {
-			clearAnimationFrames()
-			isDragging = true
-			isTouchZooming = false
-			cloud.classList.add("is-moving")
-
-			if (event.type === "touchstart") {
-				if (event.touches.length === 1) {
-					lastX = event.touches[0].screenX
-					lastY = event.touches[0].screenY
-					lastZoomTouchesDistance = 0
-				} else if (event.touches.length === 2) {
-					lastZoomTouchesDistance = getTouchDistance(event.touches[0], event.touches[1])
-					isTouchZooming = true
-				}
-
-				if (event.cancelable) {
-					event.preventDefault()
-				}
-			} else if (event.type === "mousedown" && event.button === 0) {
-				lastX = event.screenX
-				lastY = event.screenY
-			}
-
-			// Добавляем обработчики движения
-			cloud.addEventListener("mousemove", handleMouseMove)
-			cloud.addEventListener("touchmove", handleTouchMove, { passive: false })
-		}
-
-		function endDrag() {
-			isDragging = false
-			isTouchZooming = false
-			cloud.classList.remove("is-moving")
-			lastZoomTouchesDistance = 0
-
-			// Удаляем обработчики движения
-			cloud.removeEventListener("mousemove", handleMouseMove)
-			cloud.removeEventListener("touchmove", handleTouchMove)
-
-			clearAnimationFrames()
-		}
-
-		setZoom(0)
-		updateRotation(0, 0)
-
-		cloud.addEventListener("wheel", handleWheel, { passive: false })
-		cloud.addEventListener("mousedown", startDrag)
-		cloud.addEventListener("touchstart", startDrag, { passive: false })
-		cloud.addEventListener("mouseup", endDrag)
-		cloud.addEventListener("mouseleave", endDrag)
-		cloud.addEventListener("touchend", endDrag)
-		cloud.addEventListener("touchcancel", endDrag)
+	// Создаем экземпляры для всех облаков на странице
+	document.querySelectorAll('.cloud').forEach(cloudElement => {
+		new WordCloud3D(cloudElement, data)
 	})
 })

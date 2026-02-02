@@ -1,4 +1,3 @@
-import ejs from "ejs"
 import fs from "fs"
 import rename from "gulp-rename"
 import path from "path"
@@ -111,21 +110,6 @@ function clean() {
 	})
 }
 
-function ejsCompile() {
-	return transform((chunk, encoding, callback) => {
-		ejs.renderFile(chunk.path, {}, {
-			root: path.join(chunk.cwd, "src", "assets", "ejs"),
-		}).then(html => {
-			html = html.replaceAll(".scss", ".css").replaceAll(".ejs", ".html")
-			chunk.path = chunk.path.replace(chunk.extname, ".html")
-			chunk.contents = Buffer.from(html, encoding)
-			callback(null, chunk)
-		}).catch(error => {
-			callback(error, chunk)
-		})
-	})
-}
-
 function removeExcess(src, dest, ...extraExts) {
 	return transform((chunk, encoding, callback) => {
 		try {
@@ -188,5 +172,5 @@ function getDestPath(inSrc, ...replaces) {
 }
 
 
-export { clean, ejsCompile, ext, getDestPath, iconsToCSS, newer, reload, removeExcess, replace, replaceSrc, sharpWebp, svgOptimize, ttfToWoff }
+export { clean, ext, getDestPath, iconsToCSS, newer, reload, removeExcess, replace, replaceSrc, sharpWebp, svgOptimize, ttfToWoff }
 

@@ -14,10 +14,6 @@
   user-select: none;
   overscroll-behavior: none;
 
-  &--1 {
-    perspective: 10000vw;
-  }
-
   &.is-moving {
     a {
       pointer-events: none;
@@ -32,10 +28,9 @@
     width: 100%;
     height: 100%;
     position: relative;
-    translate: 0 0 calc(var(--z) * 1px);
+    translate: 0 0 var(--z);
     transform: rotateX(var(--rx)) rotateY(var(--ry));
     background: radial-gradient(circle, #00f6 0%, #00f6 5%, rgba(0, 0, 0, 0) 5%);
-    pointer-events: none;
 
     &::before {
       content: "";
@@ -60,6 +55,9 @@
     a {
       will-change: transform;
       position: absolute;
+      top: var(--cy);
+      left: var(--cx);
+      translate: -50% -50% var(--cz);
       transform: rotateY(calc(var(--ry) * -1)) rotateX(calc(var(--rx) * -1)) scale(max(1 - var(--z) / var(--cloud-size) / 2.25, 0.2));
       background-color: #fff;
       box-shadow: .2cqw .2cqw .5cqw 0 rgba(0, 0, 0, 0.2);
@@ -80,16 +78,9 @@
     &:has(a:hover) {
       a:not(:hover) {
         pointer-events: none;
+        opacity: .2;
+        background-color: #0000;
       }
     }
-  }
-
-  &:not(&--1, &--2):has(a:hover) &__words a:not(:hover) {
-    opacity: .2;
-    background-color: #0000;
-  }
-
-  &--1 a:hover {
-    transform: rotateY(calc(var(--ry, 0) * -180deg)) rotateX(calc(var(--rx, 0) * -180deg)) scale(max(var(--word-scale, 1), 0.2)) translateZ(91cqw);
   }
 }
