@@ -67,6 +67,7 @@ function js() {
 			outdir: "./build/assets/script",
 			sourcemap: "linked",
 			format: "esm",
+			// target:"es6",
 			bundle: true,
 			splitting: true,
 			treeShaking: true,

@@ -2,7 +2,7 @@ class WordCloud3D {
 	constructor(cloudElement, data) {
 		this.cloud = cloudElement
 		this.data = data
-		this.wordsContainer = cloudElement.querySelector('.cloud__words')
+		this.wordsContainer = cloudElement.querySelector(".cloud__words")
 
 		this.cloudSize = cloudElement.offsetWidth
 		this.cloudZoomRatio = 2.5
@@ -26,7 +26,7 @@ class WordCloud3D {
 	}
 
 	init() {
-		this.wordsContainer.style.setProperty('--cloud-size', `${this.cloudSize}px`)
+		this.cloud.style.setProperty("--cloud-size", `${this.cloudSize}px`)
 
 		this.createWords()
 		this.setZoom(0)
@@ -38,23 +38,22 @@ class WordCloud3D {
 		const fragment = document.createDocumentFragment()
 
 		this.data.forEach(item => {
-			const link = document.createElement('a')
-			link.innerText = item.text
-			link.href = 'https://google.com'
-			link.target = '_blank'
+			const button = document.createElement("button")
+			button.innerText = item.text
+			button.type = "button"
 
 			const cx = item.x * this.cloudSize * this.cloudZoomRatio + this.cloudSize / 2
 			const cy = item.y * this.cloudSize * this.cloudZoomRatio + this.cloudSize / 2
 			const cz = item.z * this.cloudSize * this.cloudZoomRatio
 
-			link.style.setProperty('--cz', `${cz}px`)
-			link.style.setProperty('--cx', `${cx}px`)
-			link.style.setProperty('--cy', `${cy}px`)
+			button.style.setProperty("--cz", `${cz}px`)
 
-			fragment.appendChild(link)
+			fragment.appendChild(button)
 
 			setTimeout(() => {
-			}, 0)
+				button.style.setProperty("--cx", `${cx - button.clientWidth / 2}px`)
+				button.style.setProperty("--cy", `${cy - button.clientHeight / 2}px`)
+			})
 		})
 
 		this.wordsContainer.appendChild(fragment)
@@ -63,16 +62,16 @@ class WordCloud3D {
 	setZoom(newZ) {
 		this.z = Math.max(this.minZoom, Math.min(newZ, this.maxZoom))
 
-		this.wordsContainer.style.setProperty('--z', `${this.z}px`)
-		this.wordsContainer.style.setProperty('--word-scale', 1 - this.z / this.cloudSize / 2.25)
+		this.wordsContainer.style.setProperty("--z", `${this.z}px`)
+		this.wordsContainer.style.setProperty("--word-scale", 1 - this.z / this.cloudSize / 2.25)
 	}
 
 	updateRotation(deltaX, deltaY) {
 		this.rx -= deltaY / this.mouseDragRatio % 360
 		this.ry += deltaX / this.mouseDragRatio % 360
 
-		this.wordsContainer.style.setProperty('--rx', `${this.rx}turn`)
-		this.wordsContainer.style.setProperty('--ry', `${this.ry}turn`)
+		this.wordsContainer.style.setProperty("--rx", `${this.rx}turn`)
+		this.wordsContainer.style.setProperty("--ry", `${this.ry}turn`)
 	}
 
 	clearAnimationFrame() {
@@ -158,9 +157,9 @@ class WordCloud3D {
 		this.clearAnimationFrame()
 		this.isDragging = true
 		this.isTouchZooming = false
-		this.cloud.classList.add('is-moving')
+		this.cloud.classList.add("is-moving")
 
-		if (event.type === 'touchstart') {
+		if (event.type === "touchstart") {
 			if (event.touches.length === 1) {
 				this.lastX = event.touches[0].screenX
 				this.lastY = event.touches[0].screenY
@@ -173,61 +172,61 @@ class WordCloud3D {
 			if (event.cancelable) {
 				event.preventDefault()
 			}
-		} else if (event.type === 'mousedown' && event.button === 0) {
+		} else if (event.type === "mousedown" && event.button === 0) {
 			this.lastX = event.screenX
 			this.lastY = event.screenY
 		}
 
 		// Добавляем обработчики движения
-		this.cloud.addEventListener('mousemove', this.handleMouseMove)
-		this.cloud.addEventListener('touchmove', this.handleTouchMove, { passive: false })
+		this.cloud.addEventListener("mousemove", this.handleMouseMove)
+		this.cloud.addEventListener("touchmove", this.handleTouchMove, { passive: false })
 	}
 
 	endDrag = () => {
 		this.isDragging = false
 		this.isTouchZooming = false
-		this.cloud.classList.remove('is-moving')
+		this.cloud.classList.remove("is-moving")
 		this.lastZoomTouchesDistance = 0
 
-		this.cloud.removeEventListener('mousemove', this.handleMouseMove)
-		this.cloud.removeEventListener('touchmove', this.handleTouchMove)
+		this.cloud.removeEventListener("mousemove", this.handleMouseMove)
+		this.cloud.removeEventListener("touchmove", this.handleTouchMove)
 
 		this.clearAnimationFrame()
 	}
 
 	addEventListeners() {
-		this.cloud.addEventListener('wheel', this.handleWheel, { passive: false })
-		this.cloud.addEventListener('mousedown', this.startDrag)
-		this.cloud.addEventListener('touchstart', this.startDrag, { passive: false })
-		this.cloud.addEventListener('mouseup', this.endDrag)
-		this.cloud.addEventListener('mouseleave', this.endDrag)
-		this.cloud.addEventListener('touchend', this.endDrag)
-		this.cloud.addEventListener('touchcancel', this.endDrag)
+		this.cloud.addEventListener("wheel", this.handleWheel, { passive: false })
+		this.cloud.addEventListener("mousedown", this.startDrag)
+		this.cloud.addEventListener("touchstart", this.startDrag, { passive: false })
+		this.cloud.addEventListener("mouseup", this.endDrag)
+		this.cloud.addEventListener("mouseleave", this.endDrag)
+		this.cloud.addEventListener("touchend", this.endDrag)
+		this.cloud.addEventListener("touchcancel", this.endDrag)
 	}
 
 	removeEventListeners() {
-		this.cloud.removeEventListener('wheel', this.handleWheel)
-		this.cloud.removeEventListener('mousedown', this.startDrag)
-		this.cloud.removeEventListener('touchstart', this.startDrag)
-		this.cloud.removeEventListener('mouseup', this.endDrag)
-		this.cloud.removeEventListener('mouseleave', this.endDrag)
-		this.cloud.removeEventListener('touchend', this.endDrag)
-		this.cloud.removeEventListener('touchcancel', this.endDrag)
+		this.cloud.removeEventListener("wheel", this.handleWheel)
+		this.cloud.removeEventListener("mousedown", this.startDrag)
+		this.cloud.removeEventListener("touchstart", this.startDrag)
+		this.cloud.removeEventListener("mouseup", this.endDrag)
+		this.cloud.removeEventListener("mouseleave", this.endDrag)
+		this.cloud.removeEventListener("touchend", this.endDrag)
+		this.cloud.removeEventListener("touchcancel", this.endDrag)
 
-		this.cloud.removeEventListener('mousemove', this.handleMouseMove)
-		this.cloud.removeEventListener('touchmove', this.handleTouchMove)
+		this.cloud.removeEventListener("mousemove", this.handleMouseMove)
+		this.cloud.removeEventListener("touchmove", this.handleTouchMove)
 
 		this.clearAnimationFrame()
 	}
 
 	destroy() {
 		this.removeEventListeners()
-		this.wordsContainer.innerHTML = ''
+		this.wordsContainer.innerHTML = ""
 	}
 }
 
 // Использование класса
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
 	// Ваши данные
 	const data = [
 		{
@@ -827,7 +826,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	]
 
 	// Создаем экземпляры для всех облаков на странице
-	document.querySelectorAll('.cloud').forEach(cloudElement => {
+	document.querySelectorAll(".cloud").forEach(cloudElement => {
 		new WordCloud3D(cloudElement, data)
 	})
 })

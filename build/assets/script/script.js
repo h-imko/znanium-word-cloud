@@ -21,7 +21,7 @@ var WordCloud3D = class {
     this.init();
   }
   init() {
-    this.wordsContainer.style.setProperty("--cloud-size", `${this.cloudSize}px`);
+    this.cloud.style.setProperty("--cloud-size", `${this.cloudSize}px`);
     this.createWords();
     this.setZoom(0);
     this.updateRotation(0, 0);
@@ -30,19 +30,18 @@ var WordCloud3D = class {
   createWords() {
     const fragment = document.createDocumentFragment();
     this.data.forEach((item) => {
-      const link = document.createElement("a");
-      link.innerText = item.text;
-      link.href = "https://google.com";
-      link.target = "_blank";
+      const button = document.createElement("button");
+      button.innerText = item.text;
+      button.type = "button";
       const cx = item.x * this.cloudSize * this.cloudZoomRatio + this.cloudSize / 2;
       const cy = item.y * this.cloudSize * this.cloudZoomRatio + this.cloudSize / 2;
       const cz = item.z * this.cloudSize * this.cloudZoomRatio;
-      link.style.setProperty("--cz", `${cz}px`);
-      link.style.setProperty("--cx", `${cx}px`);
-      link.style.setProperty("--cy", `${cy}px`);
-      fragment.appendChild(link);
+      button.style.setProperty("--cz", `${cz}px`);
+      fragment.appendChild(button);
       setTimeout(() => {
-      }, 0);
+        button.style.setProperty("--cx", `${cx - button.clientWidth / 2}px`);
+        button.style.setProperty("--cy", `${cy - button.clientHeight / 2}px`);
+      });
     });
     this.wordsContainer.appendChild(fragment);
   }

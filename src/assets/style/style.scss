@@ -1,8 +1,4 @@
-@use "general";
-
-.red {
-  color: red;
-}
+@use "breakpoint" as *;
 
 .cloud {
   width: min(90vh, 90vw);
@@ -14,32 +10,28 @@
   user-select: none;
   overscroll-behavior: none;
 
-  &.is-moving {
-    a {
-      pointer-events: none;
-    }
-  }
-
   &__words {
     will-change: transform;
     transform-style: preserve-3d;
     border-radius: 50%;
-    border: 0.4vw dashed #00f6;
+    border: 0.4vw dashed #347ab7;
     width: 100%;
     height: 100%;
     position: relative;
     translate: 0 0 var(--z);
     transform: rotateX(var(--rx)) rotateY(var(--ry));
-    background: radial-gradient(circle, #00f6 0%, #00f6 5%, rgba(0, 0, 0, 0) 5%);
+    background: radial-gradient(circle, #347ab766 0%, #347ab766 5%, rgba(0, 0, 0, 0) 5%);
+    pointer-events: none;
 
     &::before {
       content: "";
       inset: -0.4vw;
       position: absolute;
       border-radius: 50%;
-      border: 0.4vw dashed #0f06;
+      border: 0.4vw dashed #7eba5a;
       transform: rotateY(90deg);
-      background: radial-gradient(circle, #0f06 0%, #0f06 5%, rgba(0, 0, 0, 0) 5%);
+      background: radial-gradient(circle, #7eba5a66 0%, #7eba5a66 5%, rgba(0, 0, 0, 0) 5%);
+      pointer-events: none;
     }
 
     &::after {
@@ -47,39 +39,174 @@
       inset: -0.4vw;
       position: absolute;
       border-radius: 50%;
-      border: 0.4vw dashed #f006;
+      border: 0.4vw dashed #D44444;
       transform: rotateX(90deg);
-      background: radial-gradient(circle, #f006 0%, #f006 5%, rgba(0, 0, 0, 0) 5%);
+      background: radial-gradient(circle, #D4444466 0%, #D4444466 5%, rgba(0, 0, 0, 0) 5%);
+      pointer-events: none;
     }
 
-    a {
+    button {
       will-change: transform;
+      --scale-arg: 0;
+      white-space: nowrap;
+      text-decoration: none;
       position: absolute;
       top: var(--cy);
       left: var(--cx);
-      translate: -50% -50% var(--cz);
-      transform: rotateY(calc(var(--ry) * -1)) rotateX(calc(var(--rx) * -1)) scale(max(1 - var(--z) / var(--cloud-size) / 2.25, 0.2));
+      translate: 0 0 var(--cz);
+      transform: rotateY(calc(var(--ry) * -1)) rotateX(calc(var(--rx) * -1)) scale(max(1 - var(--z) / var(--cloud-size) / 2.25 - var(--scale-arg), 0.2));
       background-color: #fff;
       box-shadow: .2cqw .2cqw .5cqw 0 rgba(0, 0, 0, 0.2);
       font-size: 1.5cqw;
       padding: 0 .5cqw;
       border-radius: .2cqw;
       color: #000;
-      pointer-events: all;
-      transition: opacity ease .3s;
+      pointer-events: auto;
+      transition-property: opacity;
+      transition-timing-function: ease;
+      transition-duration: .2s;
+      border: none;
+      outline: none;
 
-      &:hover {
-        box-shadow: .2cqw .2cqw 1cqw 0 rgba(0, 0, 0, 0.2);
-        padding: .5cqw 1cqw;
-        font-size: 2cqw;
+      &.is-active {
+        color: #347ab7;
       }
     }
+  }
 
-    &:has(a:hover) {
-      a:not(:hover) {
-        pointer-events: none;
-        opacity: .2;
+  &:not(.is-moving) button:hover,
+  button:active {
+    cursor: pointer;
+    --scale-arg: -0.5;
+  }
+
+  &:not(.is-moving):has(button:hover),
+  &:has(button:active) {
+    button:not(:hover) {
+      pointer-events: none;
+      opacity: .2;
+      background-color: #0000;
+    }
+  }
+}
+
+.wordcloud {
+  --size: min(calc(100vw - 32px), calc(100vh - 32px));
+  border: none;
+  max-width: unset;
+  max-height: unset;
+  padding: 16px;
+  background-color: #fff;
+  width: var(--size);
+  height: var(--size);
+  gap: 24px;
+
+  &[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &-toggler {
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0iIzJmNzRiMCIgdmlld0JveD0iMCAtOTYwIDk2MCA5NjAiPjxkZWZzLz48cGF0aCBkPSJNNDM0LjUtNDM0LjVIMTkxLjg3di05MUg0MzQuNXYtMjQyLjYzaDkxdjI0Mi42M2gyNDIuNjN2OTFINTI1LjV2MjQyLjYzaC05MVYtNDM0LjV6Ii8+PC9zdmc+);
+    background-size: contain;
+    background-repeat: no-repeat;
+    border: none;
+    background-color: #0000;
+    outline: none;
+    cursor: pointer;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    right: 180px;
+    top: 15px;
+
+    @media (max-width: 500px) {
+      right: 80px;
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
+    container-type: size;
+  }
+
+  .cloud {
+    height: var(--cloud-size, min(100cqw, 100cqh));
+    width: var(--cloud-size, min(100cqw, 100cqh));
+    flex-shrink: 0;
+    margin: auto;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__title {
+    font-size: 26px;
+    color: #337ab7;
+    font-weight: 600;
+
+    @media (max-width: $tablet) {
+      font-size: 18px;
+    }
+  }
+
+  &__close {
+    background-image: url("data:image/svg+xml,<svg width='23' height='23' viewBox='0 0 23 23' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1 1L22.2132 22.2132' stroke='%23337AB7' stroke-width='1.5'/><path d='M22.2129 1L0.999687 22.2132' stroke='%23337AB7' stroke-width='1.5'/></svg>%0A");
+    width: 24px;
+    height: 24px;
+    border: none;
+    background-color: #0000;
+    outline: none;
+    background-repeat: no-repeat;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  &__selected {
+    display: flex;
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid #85b6e0;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    &:not(:has(&__item)) {
+      display: none;
+    }
+
+    &__item {
+      display: flex;
+      padding: 4px;
+      align-items: center;
+      gap: 4px;
+      border-radius: 4px;
+      border: 1px solid #85b6e0;
+      flex-shrink: 0;
+      font-size: 14px;
+
+      &__remove {
+        flex-shrink: 0;
+        background-image: url("data:image/svg+xml,<svg width='23' height='23' viewBox='0 0 23 23' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1 1L22.2132 22.2132' stroke='%23337AB7' stroke-width='1.5'/><path d='M22.2129 1L0.999687 22.2132' stroke='%23337AB7' stroke-width='1.5'/></svg>%0A");
+        background-repeat: no-repeat;
+        width: 10px;
+        height: 10px;
+        background-size: contain;
+        background-position: center;
+        border: none;
         background-color: #0000;
+        outline: none;
       }
     }
   }
