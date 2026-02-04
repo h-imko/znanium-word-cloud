@@ -18,7 +18,6 @@ var WordCloud3D = class {
     this.isDragging = false;
     this.isTouchZooming = false;
     this.animationFrameId = null;
-    this.touchStartEement = null;
     this.init();
   }
   init() {
@@ -38,7 +37,6 @@ var WordCloud3D = class {
       const cy = item.y * this.cloudSize * this.cloudZoomRatio + this.cloudSize / 2;
       const cz = item.z * this.cloudSize * this.cloudZoomRatio;
       button.style.setProperty("--cz", `${cz}px`);
-      button.addEventListener("click", console.log);
       fragment.appendChild(button);
       setTimeout(() => {
         button.style.setProperty("--cx", `${cx - button.clientWidth / 2}px`);
