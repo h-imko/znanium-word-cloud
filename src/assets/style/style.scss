@@ -9,6 +9,7 @@
   perspective: min(180vh, 180vw);
   user-select: none;
   overscroll-behavior: none;
+  touch-action: none;
 
   &__words {
     will-change: transform;
