@@ -22,6 +22,8 @@ class WordCloud3D {
 		this.isTouchZooming = false
 		this.animationFrameId = null
 
+		this.touchStartEement = null
+
 		this.init()
 	}
 
@@ -47,6 +49,8 @@ class WordCloud3D {
 			const cz = item.z * this.cloudSize * this.cloudZoomRatio
 
 			button.style.setProperty("--cz", `${cz}px`)
+
+			button.addEventListener("click", console.log)
 
 			fragment.appendChild(button)
 
@@ -164,6 +168,12 @@ class WordCloud3D {
 				this.lastX = event.touches[0].screenX
 				this.lastY = event.touches[0].screenY
 				this.lastZoomTouchesDistance = 0
+
+				const elementAtPoint = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY)?.closest('button')
+
+				if (elementAtPoint) {
+					this.touchStartEement = elementAtPoint
+				}
 			} else if (event.touches.length === 2) {
 				this.lastZoomTouchesDistance = this.getTouchDistance(event.touches[0], event.touches[1])
 				this.isTouchZooming = true
@@ -182,7 +192,7 @@ class WordCloud3D {
 		this.cloud.addEventListener("touchmove", this.handleTouchMove, { passive: false })
 	}
 
-	endDrag = () => {
+	endDrag = (event) => {
 		this.isDragging = false
 		this.isTouchZooming = false
 		this.cloud.classList.remove("is-moving")
@@ -190,6 +200,10 @@ class WordCloud3D {
 
 		this.cloud.removeEventListener("mousemove", this.handleMouseMove)
 		this.cloud.removeEventListener("touchmove", this.handleTouchMove)
+
+		if ((event.type == "touchend") && (event.target.tagName == "BUTTON")) {
+			event.target.click()
+		}
 
 		this.clearAnimationFrame()
 	}
