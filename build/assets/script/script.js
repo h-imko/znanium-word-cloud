@@ -18,6 +18,7 @@ var WordCloud3D = class {
     this.isDragging = false;
     this.isTouchZooming = false;
     this.animationFrameId = null;
+    this.touchStartEement = null;
     this.init();
   }
   init() {
@@ -37,6 +38,7 @@ var WordCloud3D = class {
       const cy = item.y * this.cloudSize * this.cloudZoomRatio + this.cloudSize / 2;
       const cz = item.z * this.cloudSize * this.cloudZoomRatio;
       button.style.setProperty("--cz", `${cz}px`);
+      button.addEventListener("click", console.log);
       fragment.appendChild(button);
       setTimeout(() => {
         button.style.setProperty("--cx", `${cx - button.clientWidth / 2}px`);
@@ -130,6 +132,10 @@ var WordCloud3D = class {
         this.lastX = event.touches[0].screenX;
         this.lastY = event.touches[0].screenY;
         this.lastZoomTouchesDistance = 0;
+        const elementAtPoint = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY)?.closest("button");
+        if (elementAtPoint) {
+          this.touchStartEement = elementAtPoint;
+        }
       } else if (event.touches.length === 2) {
         this.lastZoomTouchesDistance = this.getTouchDistance(event.touches[0], event.touches[1]);
         this.isTouchZooming = true;
@@ -144,13 +150,16 @@ var WordCloud3D = class {
     this.cloud.addEventListener("mousemove", this.handleMouseMove);
     this.cloud.addEventListener("touchmove", this.handleTouchMove, { passive: false });
   };
-  endDrag = () => {
+  endDrag = (event) => {
     this.isDragging = false;
     this.isTouchZooming = false;
     this.cloud.classList.remove("is-moving");
     this.lastZoomTouchesDistance = 0;
     this.cloud.removeEventListener("mousemove", this.handleMouseMove);
     this.cloud.removeEventListener("touchmove", this.handleTouchMove);
+    if (event.type == "touchend" && event.target.tagName == "BUTTON") {
+      event.target.click();
+    }
     this.clearAnimationFrame();
   };
   addEventListeners() {

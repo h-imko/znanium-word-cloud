@@ -22,8 +22,6 @@ class WordCloud3D {
 		this.isTouchZooming = false
 		this.animationFrameId = null
 
-		this.touchStartEement = null
-
 		this.init()
 	}
 
@@ -49,8 +47,6 @@ class WordCloud3D {
 			const cz = item.z * this.cloudSize * this.cloudZoomRatio
 
 			button.style.setProperty("--cz", `${cz}px`)
-
-			button.addEventListener("click", console.log)
 
 			fragment.appendChild(button)
 
